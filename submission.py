@@ -88,11 +88,29 @@ def alternative_solution_finder(n=9):
     #   a solution to the puzzle defined by origvalue(x,y,v) atoms,
     # finds a different solution to the sudoku expressed using value(x,y,v) atoms.
     # You can assume that clue(x,y,v) -> origvalue(x,y,v) holds true.
+    k = int(math.sqrt(n))
+    
+    for x in range(1,n+1):
+        for y in range(1,n+1):
+            formulas += value_exists(x,y,n)
+            formulas += unique_value(x,y,n)
+            
+    for x0 in range(1,n+1):
+        for y0 in range(1,n+1):
+            for x1 in range(x0,n+1):
+                for y1 in range(1,n+1):
+                    if x0 == x1 and y0 >= y1:
+                        continue
+                    if (same_row(x0,y0,x1,y1) or 
+                        same_col(x0,y0,x1,y1) or 
+                        same_box(x0,y0,x1,y1,k)):
+                        formulas += require_different_values(x0,y0,x1,y1,n)
     disjunc = []
+
     for x in range(1,n+1):
         for y in range(1,n+1):
             for v in range (1,n+1): 
                 disjunc.append((x,y,v))
                 formulas.append(Implies(clue(x,y,v), value(x,y,v)))
-    formulas = [Or(Not(Equivalent(origvalue(x,y,v), value(x,y,v)))) for x,y,v in disjunc]
+    formulas += [Or([Not(Equivalent(origvalue(x,y,v), value(x,y,v))) for x,y,v in disjunc])]
     return formulas
